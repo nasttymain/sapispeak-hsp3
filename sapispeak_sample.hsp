@@ -1,0 +1,30 @@
+#include "mod_sapispeak.hsp"
+// Sample Code
+mes "runtime: " + hspstat
+
+sdim text, 256, 3
+text(0) = "こんにちは、sapispeakモジュールの発声テストです。"
+text(1) = "HSPから、Windowsの機能を使って音声を喋ることができます。"
+text(2) = "pipeexecと似たような使い方ができるので、HSPの動作をブロックしません。"
+
+mes status@sapiSpeak()
+volume@sapiSpeak 100
+rate@sapiSpeak 0
+
+repeat 3
+    speak@sapiSpeak text(cnt)
+    mes text(cnt)
+    s = status@sapiSpeak()
+    mes s
+    repeat
+        if s != status@sapiSpeak(){
+            s = status@sapiSpeak()
+            mes s
+        }
+        if s == 0{
+            break
+        }
+        await 16
+    loop
+loop
+//*/

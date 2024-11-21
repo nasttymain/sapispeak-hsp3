@@ -1,0 +1,88 @@
+#module sapiSpeak
+    #define SVSFlagsAsync 1
+    #deffunc local init
+        /* 喋りオブジェクトの初期化
+    
+        Args:
+            なし
+        
+        Returns:
+            int: SAPI.SpVoiceオブジェクトのポインタ
+        
+        Note:
+            #include "mod_sapispeak.hsp" を記述すると勝手に呼び出されます
+        
+        */
+        newcom spvoice, "SAPI.SpVoice"
+        // TODO: HSP64 での動作確認(HSP3UTFでは確認済)
+        dim p
+        p = 0
+        memcpy p, spvoice, 4, 0, 0
+    return p
+    #define volume(%1=100) __volume@sapiSpeak %1
+    #deffunc local __volume int vol
+        /* 発声音量の変更
+    
+        Args:
+            vol (int(0..100)) = 100 : 音量
+        */
+        spvoice("Volume") = limit(vol, 0, 100)
+    return
+    #define rate(%1=0) __rate@sapiSpeak %1
+    #deffunc local __rate int rat
+        /* 発声速度の変更
+    
+        Args:
+            rat (int(-10..10)) = 0 : 発声速度
+        */
+        spvoice("Rate") = limit(rat, -10, 10)
+    return
+    #define speak(%1="") __speak@sapiSpeak %1
+    #deffunc local __speak str text
+        /* 発声の開始
+    
+        Args:
+            text (stat) : 発声する文章
+        */
+        sdim t, strlen(text) + 1
+        t = text
+        spvoice->"Speak" t, SVSFlagsAsync
+    return stat
+    #defcfunc local status
+        /* 発声状態の取得
+    
+        現在の発声状態を取得します
+        pipeget に近い使い方/値の返し方をします
+        
+        Args:
+            なし
+        
+        Returns:
+            int: 発声の状態
+                0: 発声終了
+                1: 発声の開始準備中
+                2: 発声中
+               -1: エラー
+               -2: エラー
+        
+        */
+        SpeechVoiceStatus  = spVoice("Status")
+        last_state = SpeechVoiceStatus("RunningState")
+        if       last_state == 0{
+            // 準備中
+            return 1
+        }else:if last_state == 2 or last_state == 3{
+            // 発声中
+            return 2
+        }else:if last_state == 1{
+            // 発声終了
+            return 0
+        }else{
+            // ???
+            return -2
+        }
+   return -1
+#global
+
+init@sapiSpeak
+
